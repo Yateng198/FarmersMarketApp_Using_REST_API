@@ -14,6 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Threading;
+using System.Net.Http;
+using System.Text.Json.Nodes;
+using Newtonsoft.Json;
+using static FarmersMarketApp.Admin;
 
 namespace FarmersMarketApp
 {
@@ -38,27 +42,19 @@ namespace FarmersMarketApp
             SqlConnection con = new SqlConnection("Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False");
             try
             {
-                await Task.Run(() =>
+                await Task.Run(async () =>
                 {
-                    //Open the connection
-                    con.Open();
-                    string query = "Select ProductId, ProductName, Amount, Price from ProductTable";
-                    SqlCommand cmd = new SqlCommand(query, con);
-
-                    //Execute the query to get all data in this DB
-                    cmd.ExecuteNonQuery();
-
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    DataTable dt = new DataTable("ProductTable");
-                    adapter.Fill(dt);
-
-                    //Current thread communicate with UI thread to change UI display information
+                    HttpClient client = new HttpClient();
+                    HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/GetAllProduct");
+                    responseMessage.EnsureSuccessStatusCode();
+                    string response = await responseMessage.Content.ReadAsStringAsync();
+                    Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+                    List<Product> products = jsonObj.listProducts;
                     Application.Current.Dispatcher.Invoke(new Action(() =>
                     {
-                        dataGrid.ItemsSource = dt.DefaultView;
+                        dataGrid.ItemsSource = products;
                     }));
-                    adapter.Update(dt);
-                    
+
                 });
             }
             catch (SqlException ex)
@@ -86,6 +82,6 @@ namespace FarmersMarketApp
             this.Close();
         }
 
-        
+
     }
 }
