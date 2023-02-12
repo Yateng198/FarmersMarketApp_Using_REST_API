@@ -1,0 +1,43 @@
+﻿<Window x:Class="FarmersMarketApp.Sales"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FarmersMarketApp"
+        mc:Ignorable="d"
+        Title="Sales" Height="450" Width="800">
+    <Grid>
+        <Button x:Name="homePage" Content="Home Page" HorizontalAlignment="Left" Margin="613,351,0,0" VerticalAlignment="Top" Height="36" Width="98" Click="Button_Click" FontWeight="Bold"/>
+        <Label x:Name="p1Label" Content="Apple&#xD;&#xA;" HorizontalAlignment="Left" Margin="56,70,0,0" VerticalAlignment="Top" Width="135" FontSize="14" Height="29"/>
+        <Label x:Name="p5Label" Content="Cauliflower" HorizontalAlignment="Left" Margin="56,244,0,0" VerticalAlignment="Top" Width="135" FontSize="14"/>
+        <Label x:Name="p4Label" Content="Blueberry" HorizontalAlignment="Left" Margin="56,197,0,0" VerticalAlignment="Top" Width="135" FontSize="14"/>
+        <Label x:Name="p3Label" Content="Raspberry" HorizontalAlignment="Left" Margin="56,155,0,0" VerticalAlignment="Top" Width="135" FontSize="14"/>
+        <Label x:Name="p2Label" Content="Orange" HorizontalAlignment="Left" Margin="56,113,0,0" VerticalAlignment="Top" Width="135" FontSize="14"/>
+        <TextBox HorizontalAlignment="Left" Margin="212,75,0,0" TextWrapping="Wrap" Text="Please enter the amount you want to buy" VerticalAlignment="Top" Width="257" Height="24" TextChanged="TextBox_TextChanged"/>
+        <TextBox HorizontalAlignment="Left" Margin="212,75,0,0" TextWrapping="Wrap" Text="Please enter the amount you want to buy" VerticalAlignment="Top" Width="257" Height="24" TextChanged="TextBox_TextChanged"/>
+        <TextBox x:Name="appleAmount" HorizontalAlignment="Left" Margin="212,75,0,0" TextWrapping="Wrap" Text="Please enter the amount you want to buy" VerticalAlignment="Top" Width="257" Height="24" GotFocus="FocusApple"/>
+        <TextBox x:Name="cauliAmount" HorizontalAlignment="Left" Margin="212,247,0,0" TextWrapping="Wrap" Text="Please enter the amount you want to buy" VerticalAlignment="Top" Width="257" Height="24" GotFocus="FocusCauli"/>
+        <TextBox x:Name="blueAmount" HorizontalAlignment="Left" Margin="212,203,0,0" TextWrapping="Wrap" Text="Please enter the amount you want to buy" VerticalAlignment="Top" Width="257" Height="24" GotFocus="FocusBlue"/>
+        <TextBox x:Name="raspAmount" HorizontalAlignment="Left" Margin="212,160,0,0" TextWrapping="Wrap" Text="Please enter the amount you want to buy" VerticalAlignment="Top" Width="257" Height="24" GotFocus="FocusRasp"/>
+        <TextBox x:Name="orangeAmount" HorizontalAlignment="Left" Margin="212,118,0,0" TextWrapping="Wrap" Text="Please enter the amount you want to buy" VerticalAlignment="Top" Width="257" Height="24" GotFocus="FocusOrange"/>
+        <TextBox HorizontalAlignment="Left" Margin="509,75,0,0" TextWrapping="Wrap" Text="$2.1/kg" VerticalAlignment="Top" Width="82" Height="24"/>
+        <TextBox x:Name="p1Price" HorizontalAlignment="Left" Margin="509,75,0,0" TextWrapping="Wrap" Text="$2.10/kg" VerticalAlignment="Top" Width="82" Height="24"/>
+        <TextBox x:Name="p5Price" HorizontalAlignment="Left" Margin="509,247,0,0" TextWrapping="Wrap" Text="$2.22/kg" VerticalAlignment="Top" Width="82" Height="24"/>
+        <TextBox x:Name="p4Price" HorizontalAlignment="Left" Margin="509,203,0,0" TextWrapping="Wrap" Text="$1.45/kg" VerticalAlignment="Top" Width="82" Height="24"/>
+        <TextBox x:Name="p3Price" HorizontalAlignment="Left" Margin="509,160,0,0" TextWrapping="Wrap" Text="$2.35/kg" VerticalAlignment="Top" Width="82" Height="24"/>
+        <TextBox x:Name="p2Price" HorizontalAlignment="Left" Margin="509,118,0,0" TextWrapping="Wrap" Text="$2.49/kg" VerticalAlignment="Top" Width="82" Height="24"/>
+        <Button x:Name="addApple" Content="Add" HorizontalAlignment="Left" Margin="647,75,0,0" VerticalAlignment="Top" Width="64" Height="24" Click="Add_Apple"/>
+        <Button x:Name="addCauli" Content="Add" HorizontalAlignment="Left" Margin="647,247,0,0" VerticalAlignment="Top" Width="64" Height="24" Click="Add_Cauli"/>
+        <Button x:Name="addBlue" Content="Add" HorizontalAlignment="Left" Margin="647,203,0,0" VerticalAlignment="Top" Width="64" Height="24" Click="Add_Blue"/>
+        <Button x:Name="addRasp" Content="Add" HorizontalAlignment="Left" Margin="647,160,0,0" VerticalAlignment="Top" Width="64" Height="24" Click="Add_Rasp"/>
+        <Button x:Name="addOrange" Content="Add" HorizontalAlignment="Left" Margin="647,118,0,0" VerticalAlignment="Top" Width="64" Height="24" Click="Add_Orange"/>
+        <Button x:Name="restart" Content="Clean Shopping Cart and Restart" HorizontalAlignment="Left" Margin="56,351,0,0" VerticalAlignment="Top" Width="202" Height="35" FontWeight="Bold" Click="Restart"/>
+        <Label Content="Total Price" HorizontalAlignment="Left" Margin="56,295,0,0" VerticalAlignment="Top" Width="135" FontSize="14"/>
+        <TextBox x:Name="totalPrice" HorizontalAlignment="Left" Margin="212,300,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="257" Height="24" TextChanged="TextBox_TextChanged"/>
+        <Button x:Name="confirmOrder" Content="Confirm Order" HorizontalAlignment="Left" Margin="613,300,0,0" VerticalAlignment="Top" Width="98" Height="24" Background="#FFF3C663" FontWeight="Bold" Click="Order_Confirm"/>
+        <Label Content="Product Name" HorizontalAlignment="Left" Margin="56,21,0,0" VerticalAlignment="Top" Width="113" FontWeight="Bold" FontSize="14"/>
+        <Label Content="Amount (kg)" HorizontalAlignment="Left" Margin="212,21,0,0" VerticalAlignment="Top" Width="113" FontWeight="Bold" FontSize="14"/>
+        <Label Content="Price (CAD)/kg" HorizontalAlignment="Left" Margin="509,21,0,0" VerticalAlignment="Top" Width="113" FontWeight="Bold" FontSize="14"/>
+
+    </Grid>
+</Window>
