@@ -29,18 +29,13 @@ namespace FarmersMarketApp
     public partial class Admin : Window
     {
         //Global variable
-        SqlConnection con;
         private static HttpClient client;
 
         //In this page, we are using Task-async-await to contorl Threads Synchronization.
         public Admin()
         {
             InitializeComponent();
-            //set up and open connection for this whole page, so that using a single connection with the DB
-            //Ensure that data are synchronized
-            con = new SqlConnection("Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False");
-            con.Open();
-
+           
         }
 
         public class Product
@@ -64,7 +59,6 @@ namespace FarmersMarketApp
         private void Home_Button_Click(object sender, RoutedEventArgs e)
         {
             MainWindow mw = new MainWindow();
-            con.Close();
             mw.Show();
             this.Close();
         }
@@ -169,8 +163,6 @@ namespace FarmersMarketApp
             await Task.Run(updateButton);
 
         }
-
-
         private void updateButton()
         {
             try
@@ -275,7 +267,6 @@ namespace FarmersMarketApp
         private void List_All_Button_Click(object sender, RoutedEventArgs e)
         {
             ListAll ls = new ListAll();
-            con.Close();
             ls.Show();
             this.Close();
         }
