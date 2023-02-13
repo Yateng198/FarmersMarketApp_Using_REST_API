@@ -1,9 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Xml;
 using System.Xml.Linq;
+using static FarmersMarketApp.Admin;
 
 namespace FarmersMarketApp
 {
@@ -23,7 +28,7 @@ namespace FarmersMarketApp
     /// </summary>
     public partial class Sales : Window
     {
-        SqlConnection con;
+        static HttpClient client;
 
         public Sales()
         {
@@ -68,40 +73,31 @@ namespace FarmersMarketApp
         }
 
 
-        private void Add_Apple(object sender, RoutedEventArgs e)
+        private async void Add_Apple(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False";
-            con = new SqlConnection(connectionString);
+            int appleStock;
+            double applePrice = 2.1;
+
+            client = new HttpClient();
+            HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/getProductById/124567");
+            responseMessage.EnsureSuccessStatusCode();
+            string response = await responseMessage.Content.ReadAsStringAsync();
+
+            //Build up the json response message object with customed Json class
+            Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+
+            //Get apple currently in stock information
+            Product apple = jsonObj.product;
+            appleStock = apple.amount;
+
+            int appleInOrder = 0;
             try
             {
-                //Open the database Connection
-
-                con.Open();
-
-                int appleStock;
-                double applePrice = 2.1;
-                String query = "Select ProductID, ProductName , Amount, Price from ProductTable where ProductID=@ProductID";
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@ProductID", 124567);
-                SqlDataReader sqlReader = cmd.ExecuteReader();
-                sqlReader.Read();
-                appleStock = (int)sqlReader.GetValue(2);
-                //applePrice = (double)sqlReader.GetValue(3);
-                //p1Price.Text = applePrice.ToString();
-
-                int appleInOrder = 0;
-                try
-                {
-                    appleInOrder = (int.Parse(appleAmount.Text));
-                }catch(Exception)
-                {
-                    MessageBox.Show("Input error, please only input integer for the amount of product." +
-                    "\n\nInput 0 if you don't want this product.");
-                }
+                appleInOrder = (int.Parse(appleAmount.Text));
                 double orderTPrice = Convert.ToDouble(totalPrice.Text);
 
-
-                if ((appleStock - appleInOrder) >= 0) 
+                //Check if amount of apple in stock is greater than user ordering, otherwise will prompt user try again
+                if ((appleStock - appleInOrder) >= 0)
                 {
                     orderTPrice = orderTPrice + (applePrice * appleInOrder);
                     //just for better presentation for avg score
@@ -114,48 +110,37 @@ namespace FarmersMarketApp
                     MessageBox.Show("Sorry, we only have " + appleStock + "kg apples in stock, please choose again with valid amount.");
                 }
 
-                con.Close();
             }
-            catch (SqlException ex)
+            catch (Exception)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Input error, please only input integer for the amount of product." +
+                "\n\nInput 0 if you don't want this product.");
             }
         }
 
-        private void Add_Orange(object sender, RoutedEventArgs e)
+        private async void Add_Orange(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False";
-            con = new SqlConnection(connectionString);
+            int orangeStock;
+            double orangePrice = 2.49;
+            client = new HttpClient();
+
+            HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/getProductById/345678");
+            responseMessage.EnsureSuccessStatusCode();
+            string response = await responseMessage.Content.ReadAsStringAsync();
+            Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+
+            //Get orange in stock information
+            Product orange = jsonObj.product;
+            orangeStock = orange.amount;
+
+            int orangeInOrder = 0;
             try
             {
-                //Open the database Connection
+                orangeInOrder = (int.Parse(orangeAmount.Text));
 
-                con.Open();
-
-                int orangeStock;
-                double orangePrice = 2.49;
-                String query = "Select ProductID, ProductName , Amount, Price from ProductTable where ProductID=@ProductID";
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@ProductID", 345678);
-                SqlDataReader sqlReader = cmd.ExecuteReader();
-                sqlReader.Read();
-                orangeStock = (int)sqlReader.GetValue(2);
-                //orangePrice = (double)sqlReader.GetValue(3);
-                //p1Price.Text = OrangePrice.ToString();
-
-                int orangeInOrder = 0;
-                try
-                {
-                    orangeInOrder = (int.Parse(orangeAmount.Text));
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Input error, please only input integer for the amount of product." +
-                    "\n\nInput 0 if you don't want this product.");
-                }
                 double orderTPrice = Convert.ToDouble(totalPrice.Text);
 
-
+                //Make sure amount of orange in stock is greater than user ordering
                 if ((orangeStock - orangeInOrder) >= 0)
                 {
                     orderTPrice = orderTPrice + (orangePrice * orangeInOrder);
@@ -168,46 +153,36 @@ namespace FarmersMarketApp
                 {
                     MessageBox.Show("Sorry, we only have " + orangeStock + "kg oranges in stock, please choose again with valid amount.");
                 }
-
-                con.Close();
             }
-            catch (SqlException ex)
+            catch (Exception)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Input error, please only input integer for the amount of product." +
+                "\n\nInput 0 if you don't want this product.");
             }
+
         }
 
-        private void Add_Rasp(object sender, RoutedEventArgs e)
+        private async void Add_Rasp(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False";
-            con = new SqlConnection(connectionString);
+            int raspStock;
+            double raspPrice = 2.35;
+
+            client = new HttpClient();
+
+            HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/getProductById/125678");
+            responseMessage.EnsureSuccessStatusCode();
+            string response = await responseMessage.Content.ReadAsStringAsync();
+            Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+            //Get raspberry in stock information
+            Product raspberry = jsonObj.product;
+            raspStock = raspberry.amount;
+
+
+            int raspInOrder = 0;
             try
             {
-                //Open the database Connection
+                raspInOrder = (int.Parse(raspAmount.Text));
 
-                con.Open();
-
-                int raspStock;
-                double raspPrice = 2.35;
-                String query = "Select ProductID, ProductName , Amount, Price from ProductTable where ProductID=@ProductID";
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@ProductID", 125678);
-                SqlDataReader sqlReader = cmd.ExecuteReader();
-                sqlReader.Read();
-                raspStock = (int)sqlReader.GetValue(2);
-                //raspPrice = (double)sqlReader.GetValue(3);
-                //p1Price.Text = RaspPrice.ToString();
-
-                int raspInOrder = 0;
-                try
-                {
-                    raspInOrder = (int.Parse(raspAmount.Text));
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Input error, please only input integer for the amount of product." +
-                    "\n\nInput 0 if you don't want this product.");
-                }
                 double orderTPrice = Convert.ToDouble(totalPrice.Text);
 
 
@@ -223,49 +198,35 @@ namespace FarmersMarketApp
                 {
                     MessageBox.Show("Sorry, we only have " + raspStock + "kg raspberries in stock, please choose again with valid amount.");
                 }
-
-                con.Close();
             }
-            catch (SqlException ex)
+            catch (Exception)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Input error, please only input integer for the amount of product." +
+                "\n\nInput 0 if you don't want this product.");
             }
         }
 
-        private void Add_Blue(object sender, RoutedEventArgs e)
+        private async void Add_Blue(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False";
-            con = new SqlConnection(connectionString);
+            int blueStock;
+            double bluePrice = 1.45;
+
+            client = new HttpClient();
+
+            HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/getProductById/456732");
+            responseMessage.EnsureSuccessStatusCode();
+            string response = await responseMessage.Content.ReadAsStringAsync();
+            Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+
+            //Get blueberry currently in stock information
+            Product blueberry = jsonObj.product;
+            blueStock = blueberry.amount;
+
+            int blueInOrder = 0;
             try
             {
-                //Open the database Connection
-
-                con.Open();
-
-                int blueStock;
-                double bluePrice = 1.45;
-                String query = "Select ProductID, ProductName , Amount, Price from ProductTable where ProductID=@ProductID";
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@ProductID", 456732);
-                SqlDataReader sqlReader = cmd.ExecuteReader();
-                sqlReader.Read();
-                blueStock = (int)sqlReader.GetValue(2);
-                //bluePrice = (double)sqlReader.GetValue(3);
-                //p1Price.Text = BluePrice.ToString();
-
-                int blueInOrder = 0;
-                try
-                {
-                    blueInOrder = (int.Parse(blueAmount.Text));
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Input error, please only input integer for the amount of product." +
-                    "\n\nInput 0 if you don't want this product.");
-                }
+                blueInOrder = (int.Parse(blueAmount.Text));
                 double orderTPrice = Convert.ToDouble(totalPrice.Text);
-
-
                 if ((blueStock - blueInOrder) >= 0)
                 {
                     orderTPrice = orderTPrice + (bluePrice * blueInOrder);
@@ -279,48 +240,35 @@ namespace FarmersMarketApp
                     MessageBox.Show("Sorry, we only have " + blueStock + "kg blueberries in stock, please choose again with valid amount.");
                 }
 
-                con.Close();
             }
-            catch (SqlException ex)
+            catch (Exception)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Input error, please only input integer for the amount of product." +
+                "\n\nInput 0 if you don't want this product.");
             }
         }
 
-        private void Add_Cauli(object sender, RoutedEventArgs e)
+        private async void Add_Cauli(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False";
-            con = new SqlConnection(connectionString);
+            int cauliStock;
+            double cauliPrice = 2.22;
+
+            client = new HttpClient();
+
+            HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/getProductById/238901");
+            responseMessage.EnsureSuccessStatusCode();
+            string response = await responseMessage.Content.ReadAsStringAsync();
+            Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+            //Get cauliflower currently in stock information
+            Product cauliflower = jsonObj.product;
+            cauliStock = cauliflower.amount;
+
+            int cauliInOrder = 0;
             try
             {
-                //Open the database Connection
+                cauliInOrder = (int.Parse(cauliAmount.Text));
 
-                con.Open();
-
-                int cauliStock;
-                double cauliPrice = 2.22;
-                String query = "Select ProductID, ProductName , Amount, Price from ProductTable where ProductID=@ProductID";
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@ProductID", 238901);
-                SqlDataReader sqlReader = cmd.ExecuteReader();
-                sqlReader.Read();
-                cauliStock = (int)sqlReader.GetValue(2);
-                //cauliPrice = (double)sqlReader.GetValue(3);
-                //p1Price.Text = CauliPrice.ToString();
-
-                int cauliInOrder = 0;
-                try
-                {
-                    cauliInOrder = (int.Parse(cauliAmount.Text));
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Input error, please only input integer for the amount of product." +
-                    "\n\nInput 0 if you don't want this product.");
-                }
                 double orderTPrice = Convert.ToDouble(totalPrice.Text);
-
-
                 if ((cauliStock - cauliInOrder) >= 0)
                 {
                     orderTPrice = orderTPrice + (cauliPrice * cauliInOrder);
@@ -333,12 +281,11 @@ namespace FarmersMarketApp
                 {
                     MessageBox.Show("Sorry, we only have " + cauliStock + "kg cauliflowers in stock, please choose again with valid amount.");
                 }
-
-                con.Close();
             }
-            catch (SqlException ex)
+            catch (Exception)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Input error, please only input integer for the amount of product." +
+                "\n\nInput 0 if you don't want this product.");
             }
         }
 
@@ -355,91 +302,63 @@ namespace FarmersMarketApp
             MessageBox.Show("Shopping carts cleaned, now you could choose again!");
         }
 
-        private void Order_Confirm(object sender, RoutedEventArgs e)
+        private async void Order_Confirm(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False";
-            con = new SqlConnection(connectionString);
+            int appleStock;
+            int orangeStock;
+            int raspStock;
+            int blueStock;
+            int cauliStock;
+
+            double applePrice = 2.10;
+            double orangePrice = 2.49;
+            double raspPrice = 2.35;
+            double bluePrice = 1.45;
+            double cauliPrice = 2.22;
+
+            client = new HttpClient();
+            //Get all products in the data base from Rest API
+            HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/GetAllProduct");
+            responseMessage.EnsureSuccessStatusCode();
+            string response = await responseMessage.Content.ReadAsStringAsync();
+            Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+            //Take the product list from response message
+            List<Product> productsList = jsonObj.listProducts;
+
+            //Get each product currently in stock information from rest api response message object
+            Product apple = productsList[0];
+            appleStock = apple.amount;
+
+            Product raspberry = productsList[1];
+            raspStock = raspberry.amount;
+
+            Product cauliflower = productsList[2];
+            cauliStock = cauliflower.amount;
+
+            Product orange = productsList[3];
+            orangeStock = orange.amount;
+
+            Product blueberry = productsList[4];
+            blueStock = blueberry.amount;
+
+
+            int appleInOrder = 0;
+            int orangeInOrder = 0;
+            int raspInOrder = 0;
+            int blueInOrder = 0;
+            int cauliInOrder = 0;
+
             try
             {
-                //Open the database Connection
-
-                con.Open();
-
-                int appleStock;
-                int orangeStock;
-                int raspStock;
-                int blueStock;
-                int cauliStock;
-
-                double applePrice = 2.10;
-                double orangePrice = 2.49;
-                double raspPrice = 2.35;
-                double bluePrice = 1.45;
-                double cauliPrice = 2.22;
-
-                String query = "Select ProductID, ProductName , Amount, Price from ProductTable where ProductID=@ProductID";
-
-                SqlCommand cmd1 = new SqlCommand(query, con);
-                cmd1.Parameters.AddWithValue("@ProductID", 124567);
-                SqlDataReader sqlReader1 = cmd1.ExecuteReader();
-                sqlReader1.Read();
-                appleStock = (int)sqlReader1.GetValue(2);
-                sqlReader1.Close();
-
-                SqlCommand cmd2 = new SqlCommand(query, con);
-                cmd2.Parameters.AddWithValue("@ProductID", 345678);
-                SqlDataReader sqlReader2 = cmd2.ExecuteReader();
-                sqlReader2.Read();
-                orangeStock = (int)sqlReader2.GetValue(2);
-                sqlReader2.Close();
-
-                SqlCommand cmd3 = new SqlCommand(query, con);
-                cmd3.Parameters.AddWithValue("@ProductID", 125678);
-                SqlDataReader sqlReader3 = cmd3.ExecuteReader();
-                sqlReader3.Read();
-                raspStock = (int)sqlReader3.GetValue(2);
-                sqlReader3.Close();
-
-                SqlCommand cmd4 = new SqlCommand(query, con);
-                cmd4.Parameters.AddWithValue("@ProductID", 456732);
-                SqlDataReader sqlReader4 = cmd4.ExecuteReader();
-                sqlReader4.Read();
-                blueStock = (int)sqlReader4.GetValue(2);
-                sqlReader4.Close();
-
-                SqlCommand cmd5 = new SqlCommand(query, con);
-                cmd5.Parameters.AddWithValue("@ProductID", 238901);
-                SqlDataReader sqlReader5 = cmd5.ExecuteReader();
-                sqlReader5.Read();
-                cauliStock = (int)sqlReader5.GetValue(2);
-                sqlReader5.Close();
-
-
-
-                int appleInOrder = 0;
-                int orangeInOrder = 0;
-                int raspInOrder = 0;
-                int blueInOrder = 0;
-                int cauliInOrder = 0;
-
-                try
-                {
-                    appleInOrder = (int.Parse(appleAmount.Text));
-                    orangeInOrder = (int.Parse(orangeAmount.Text));
-                    raspInOrder = (int.Parse(raspAmount.Text));
-                    blueInOrder = (int.Parse(blueAmount.Text));
-                    cauliInOrder = (int.Parse(cauliAmount.Text));
-
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("Input error, please only input integer for the amount of product." +
-                    "\n\nInput 0 if you don't want this product.");
-                }
+                appleInOrder = (int.Parse(appleAmount.Text));
+                orangeInOrder = (int.Parse(orangeAmount.Text));
+                raspInOrder = (int.Parse(raspAmount.Text));
+                blueInOrder = (int.Parse(blueAmount.Text));
+                cauliInOrder = (int.Parse(cauliAmount.Text));
 
                 double orderTPrice = 0;
 
-
+                //If any one in stock amount is lower than user ordering, will prompt user try again
                 if ((appleStock - appleInOrder) < 0)
                 {
                     MessageBox.Show("Sorry, we only have " + appleStock + "kg apples in stock, please choose again with valid amount.");
@@ -467,6 +386,7 @@ namespace FarmersMarketApp
 
                 else
                 {
+                    //Calculating total price of this order
                     orderTPrice = (applePrice * appleInOrder)
                     + (orangePrice * orangeInOrder)
                     + (raspPrice * raspInOrder)
@@ -477,58 +397,67 @@ namespace FarmersMarketApp
                     orderTPrice = ((double)((int)((orderTPrice + 0.005) * 100))) / 100;
                     totalPrice.Text = orderTPrice.ToString();
 
-                    String query2 = "Update productTable set Amount=@Amount where ProductID=@ProductID";
-                    SqlCommand cmd6 = new SqlCommand(query2, con);
-                    SqlCommand cmd7 = new SqlCommand(query2, con);
-                    SqlCommand cmd8 = new SqlCommand(query2, con);
-                    SqlCommand cmd9 = new SqlCommand(query2, con);
-                    SqlCommand cmd10 = new SqlCommand(query2, con);
-
-                    try
+                    //Update new database information after this order into the database
+                    Product apl = new Product()
                     {
-                        cmd6.Parameters.AddWithValue("@ProductID", 124567);
-                        cmd6.Parameters.AddWithValue("@Amount", appleStock - int.Parse(appleAmount.Text));
+                        productName = apple.productName,
+                        productId = apple.productId,
+                        amount = appleStock - int.Parse(appleAmount.Text),
+                        price = apple.price,
+                    };
+                    _ = await client.PutAsJsonAsync("https://localhost:7118/api/Product/updateProduct", apl);
 
-                        cmd7.Parameters.AddWithValue("@ProductID", 345678);
-                        cmd7.Parameters.AddWithValue("@Amount", orangeStock - int.Parse(orangeAmount.Text));
-
-                        cmd8.Parameters.AddWithValue("@ProductID", 125678);
-                        cmd8.Parameters.AddWithValue("@Amount", raspStock - int.Parse(raspAmount.Text));
-
-                        cmd9.Parameters.AddWithValue("@ProductID", 456732);
-                        cmd9.Parameters.AddWithValue("@Amount", blueStock - int.Parse(blueAmount.Text));
-
-                        cmd10.Parameters.AddWithValue("@ProductID", 238901);
-                        cmd10.Parameters.AddWithValue("@Amount", cauliStock - int.Parse(cauliAmount.Text));
-
-                        //We now need to execute our Query
-                        cmd6.ExecuteNonQuery();
-                        cmd7.ExecuteNonQuery();
-                        cmd8.ExecuteNonQuery();
-                        cmd9.ExecuteNonQuery();
-                        cmd10.ExecuteNonQuery();
-
-                        //Order processing message
-                        MessageBox.Show("Order processed.\n\n" +
-                        "You've ordered " + appleInOrder + "kg Apples, "
-                        + orangeInOrder + "kg Oranges, "
-                        + raspInOrder + "kg Raspberries, "
-                        + blueInOrder + "kg Blueberries, and "
-                        + cauliInOrder + "kg Cauliflowers.\n\n The Total Price is (CA)$" + orderTPrice + ".");
-                    }
-                    catch (Exception)
+                    Product rasp = new Product()
                     {
-                        MessageBox.Show("Input error, please only input integer for the amount of product." +
-                        "\n\nInput 0 if you don't want this product.");
-                    }
+                        productName = raspberry.productName,
+                        productId = raspberry.productId,
+                        amount = raspStock - int.Parse(appleAmount.Text),
+                        price = raspberry.price,
+                    };
+                    _ = await client.PutAsJsonAsync("https://localhost:7118/api/Product/updateProduct", rasp);
+
+                    Product cauli = new Product()
+                    {
+                        productName = cauliflower.productName,
+                        productId = cauliflower.productId,
+                        amount = cauliStock - int.Parse(appleAmount.Text),
+                        price = cauliflower.price,
+                    };
+                    _ = await client.PutAsJsonAsync("https://localhost:7118/api/Product/updateProduct", cauli);
+
+                    Product ora = new Product()
+                    {
+                        productName = orange.productName,
+                        productId = orange.productId,
+                        amount = orangeStock - int.Parse(appleAmount.Text),
+                        price = orange.price,
+                    };
+                    _ = await client.PutAsJsonAsync("https://localhost:7118/api/Product/updateProduct", ora);
+
+                    Product blu = new Product()
+                    {
+                        productName = blueberry.productName,
+                        productId = blueberry.productId,
+                        amount = blueStock - int.Parse(appleAmount.Text),
+                        price = blueberry.price,
+                    };
+                    _ = await client.PutAsJsonAsync("https://localhost:7118/api/Product/updateProduct", blu);
+
+
+                    //Order processing message
+                    MessageBox.Show("Order processed.\n\n" +
+                    "You've ordered " + appleInOrder + "kg Apples, "
+                    + orangeInOrder + "kg Oranges, "
+                    + raspInOrder + "kg Raspberries, "
+                    + blueInOrder + "kg Blueberries, and "
+                    + cauliInOrder + "kg Cauliflowers.\n\n The Total Price is (CA)$" + orderTPrice + ".");
+
 
                 }
-
-                con.Close();
-            }
-            catch (SqlException ex)
+            catch (Exception)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Input error, please only input integer for the amount of product." +
+                "\n\nInput 0 if you don't want this product.");
             }
         }
 

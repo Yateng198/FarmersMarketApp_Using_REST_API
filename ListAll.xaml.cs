@@ -38,34 +38,23 @@ namespace FarmersMarketApp
         //Task-await-async control threading synchronization
         private async void listDB()
         {
-            //Set up connection 
-            SqlConnection con = new SqlConnection("Data Source=DESKTOP-1AHTENP;Initial Catalog=FarmersMarket;Integrated Security=True;Pooling=False");
-            try
+            await Task.Run(async () =>
             {
-                await Task.Run(async () =>
-                {
-                    HttpClient client = new HttpClient();
-                    HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/GetAllProduct");
-                    responseMessage.EnsureSuccessStatusCode();
-                    string response = await responseMessage.Content.ReadAsStringAsync();
-                    Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
-                    List<Product> products = jsonObj.listProducts;
-                    Application.Current.Dispatcher.Invoke(new Action(() =>
-                    {
-                        dataGrid.ItemsSource = products;
-                    }));
+                HttpClient client = new HttpClient();
+                HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/GetAllProduct");
+                responseMessage.EnsureSuccessStatusCode();
+                string response = await responseMessage.Content.ReadAsStringAsync();
+                Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
 
-                });
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                //close connection
-                con.Close();
-            }
+                //Get the product list in the json response message object
+                List<Product> products = jsonObj.listProducts;
+                Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
+                    //Fill up the datagrid with the product list information
+                    dataGrid.ItemsSource = products;
+                }));
+
+            });
         }
 
         private void Home_Button_Click(object sender, RoutedEventArgs e)

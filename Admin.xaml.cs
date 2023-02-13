@@ -35,9 +35,10 @@ namespace FarmersMarketApp
         public Admin()
         {
             InitializeComponent();
-           
+
         }
 
+        //Product class to get product object from Json response message
         public class Product
         {
             public string productName { get; set; }
@@ -45,6 +46,8 @@ namespace FarmersMarketApp
             public int amount { get; set; }
             public double price { get; set; }
         }
+
+        //Use to get the reponse object from Api response message
         public class Json
         {
             public string statuesCode { get; set; }
@@ -55,7 +58,7 @@ namespace FarmersMarketApp
         }
 
 
-        //Back to home window and close the connection
+        //Back to home window and close the admin window
         private void Home_Button_Click(object sender, RoutedEventArgs e)
         {
             MainWindow mw = new MainWindow();
@@ -71,42 +74,36 @@ namespace FarmersMarketApp
 
         private void insertButton()
         {
-            try
+            //Dispatch current thread to communicate with the UI thread
+            Application.Current.Dispatcher.Invoke(new Action(async () =>
             {
-                //Dispatch current thread to communicate with the UI thread
-                Application.Current.Dispatcher.Invoke(new Action(async () =>
+                try
                 {
-                    try
+                    client = new HttpClient();
+                    Product product = new Product();
+                    //Check if the product name is entered properly, otherwise wont insert to the data base
+                    if (!p_name.Text.Equals(""))
                     {
-                        client = new HttpClient();
-                        Product product = new Product();
-                        if (!p_name.Text.Equals(""))
-                        {
-                            product.productId = int.Parse(p_id.Text);
-                            product.productName = p_name.Text;
-                            product.amount = int.Parse(p_amount.Text);
-                            product.price = float.Parse(p_price.Text);
-
-                            _ = await client.PostAsJsonAsync("https://localhost:7118/api/Product/addProduct", product);
-                            MessageBox.Show(p_amount.Text + " kg " + p_name.Text + " has been added successfully!");
-                        }
-                        else
-                        {
-                            MessageBox.Show("Enter the product name and try again please!");
-                        }
-
+                        product.productId = int.Parse(p_id.Text);
+                        product.productName = p_name.Text;
+                        product.amount = int.Parse(p_amount.Text);
+                        product.price = float.Parse(p_price.Text);
+                        //Insert new product into database through rest Api
+                        _ = await client.PostAsJsonAsync("https://localhost:7118/api/Product/addProduct", product);
+                        MessageBox.Show(p_amount.Text + " kg " + p_name.Text + " has been added successfully!");
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MessageBox.Show("Please check you input, digits only for Id, Amount and Price!");
+                        MessageBox.Show("Enter the product name and try again please!");
                     }
-                }));
 
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+                }
+                catch (Exception ex)
+                {
+                    //If any exception catched, will pop out this error msg prompt user try again
+                    MessageBox.Show("Please check you input, digits only for Id, Amount and Price!");
+                }
+            }));
         }
         //Delete operation
         private async void Delete_Button_Click(object sender, RoutedEventArgs e)
@@ -119,41 +116,37 @@ namespace FarmersMarketApp
 
         private void deleteButton()
         {
-            try
+            //Dispatch current thread to communicate with the UI thread
+            Application.Current.Dispatcher.Invoke(new Action(async () =>
             {
-                //Dispatch current thread to communicate with the UI thread
-                Application.Current.Dispatcher.Invoke(new Action(async () =>
+                try
                 {
-                    try
+                    int.Parse(p_id.Text.Trim());
+                    client = new HttpClient();
+                    //Send delete request through rest api
+                    HttpResponseMessage responseMessage = await client.DeleteAsync("https://localhost:7118/api/Product/DeleteProduct/" + p_id.Text.Trim());
+                    responseMessage.EnsureSuccessStatusCode();
+                    string response = await responseMessage.Content.ReadAsStringAsync();
+                    Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+                    //Check if the status message is success or not, 
+                    if (jsonObj.statusMessage.Equals("Product Found and Deleted!"))
                     {
-                        int.Parse(p_id.Text.Trim());
-
-                        client = new HttpClient();
-                        HttpResponseMessage responseMessage = await client.DeleteAsync("https://localhost:7118/api/Product/DeleteProduct/" + p_id.Text.Trim());
-                        responseMessage.EnsureSuccessStatusCode();
-                        string response = await responseMessage.Content.ReadAsStringAsync();
-                        Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
-                        if (jsonObj.statusMessage.Equals("Product Found and Deleted!"))
-                        {
-                            MessageBox.Show("Product Found and deleted!");
-                        }
-                        else
-                        {
-                            MessageBox.Show("Product not found, check your Id and try again please!");
-                        }
-
+                        MessageBox.Show("Product Found and deleted!");
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MessageBox.Show("Enter the product Id that you want to delete by digits only please!");
+                        //If id input not found in database, will promopt user try again
+                        MessageBox.Show("Product not found, check your Id and try again please!");
                     }
-                }));
 
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+                }
+                catch (Exception ex)
+                {
+                    //In case of letters entered in the id block, will catch exception and prompt user try again
+                    MessageBox.Show("Enter the product Id that you want to delete by digits only please!");
+                }
+            }));
+
         }
 
         //Update operation
@@ -165,45 +158,39 @@ namespace FarmersMarketApp
         }
         private void updateButton()
         {
-            try
+            //Dispatch current thread to communicate with the UI thread
+            Application.Current.Dispatcher.Invoke(new Action(async () =>
             {
-                //Dispatch current thread to communicate with the UI thread
-                Application.Current.Dispatcher.Invoke(new Action(async () =>
+                try
                 {
-                    try
+                    client = new HttpClient();
+                    //Make sure product name is entered properly otherwise won't insert anything in the database
+                    if (!p_name.Text.Equals(""))
                     {
-                        client = new HttpClient();
-                        if (!p_name.Text.Equals(""))
+                        Product product = new Product()
                         {
-                            Product product = new Product()
-                            {
-                                productId = int.Parse(p_id.Text.Trim()),
-                                productName = p_name.Text.Trim(),
-                                amount = int.Parse(p_amount.Text.Trim()),
-                                price = float.Parse(p_price.Text.Trim())
-                            };
-                            await client.PutAsJsonAsync("https://localhost:7118/api/Product/updateProduct", product);
+                            productId = int.Parse(p_id.Text.Trim()),
+                            productName = p_name.Text.Trim(),
+                            amount = int.Parse(p_amount.Text.Trim()),
+                            price = float.Parse(p_price.Text.Trim())
+                        };
+                        await client.PutAsJsonAsync("https://localhost:7118/api/Product/updateProduct", product);
 
-                            MessageBox.Show("Product information updated successfully!");
-                        }
-                        else
-                        {
-                            MessageBox.Show("The product name can not be blank, try again please!");
-                        }
+                        MessageBox.Show("Product information updated successfully!");
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MessageBox.Show("Input error, digit only for ID, Amount and Price, try again please!");
+                        MessageBox.Show("The product name can not be blank, try again please!");
                     }
+                }
+                catch (Exception ex)
+                {
+                    //In case of any mis-match input for Id, Amount and Price, will prompt user try again
+                    MessageBox.Show("Input error, digit only for ID, Amount and Price, try again please!");
+                }
 
-                }));
+            }));
 
-
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
         }
 
         private async void Search_Button_Click(object sender, RoutedEventArgs e)
@@ -213,53 +200,46 @@ namespace FarmersMarketApp
 
         private void searchButton()
         {
-            try
+            //Dispatch current thread to communicate with the UI thread
+            Application.Current.Dispatcher.Invoke(new Action(async () =>
             {
-                //Dispatch current thread to communicate with the UI thread
-                Application.Current.Dispatcher.Invoke(new Action(async () =>
+
+                try
                 {
-
-                    try
+                    _ = (int.Parse(p_id.Text));
+                    client = new HttpClient();
+                    //Check if the Id block is blank, will prompt user try again
+                    if (!(p_id.Text.Equals("")))
                     {
-                        _ = (int.Parse(p_id.Text));
-                        client = new HttpClient();
-                        if (!(p_id.Text.Equals("")))
-                        {
-                            HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/getProductById/" + p_id.Text);
-                            responseMessage.EnsureSuccessStatusCode();
-                            string response = await responseMessage.Content.ReadAsStringAsync();
-                            // Console.WriteLine(response.ToString());
+                        HttpResponseMessage responseMessage = await client.GetAsync("https://localhost:7118/api/Product/getProductById/" + p_id.Text.Trim());
+                        responseMessage.EnsureSuccessStatusCode();
+                        string response = await responseMessage.Content.ReadAsStringAsync();
 
-                            Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
-                            Product product = jsonObj.product;
-                            if (product != null)
-                            {
-                                p_name.Text = product.productName;
-                                p_id.Text = product.productId.ToString();
-                                p_amount.Text = product.amount.ToString();
-                                p_price.Text = product.price.ToString();
-                            }
-                            else
-                            {
-                                MessageBox.Show("No iteam found with thid ID!");
-                            }
+                        Json jsonObj = JsonConvert.DeserializeObject<Json>(response);
+                        //Take out the product object from the Json response message object
+                        Product product = jsonObj.product;
+                        if (product != null)
+                        {
+                            p_name.Text = product.productName;
+                            p_id.Text = product.productId.ToString();
+                            p_amount.Text = product.amount.ToString();
+                            p_price.Text = product.price.ToString();
                         }
                         else
                         {
-                            MessageBox.Show("Enter the product id you want search please!");
+                            MessageBox.Show("No iteam found with thid ID!");
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MessageBox.Show("Input error, digits only for product ID, try again please!");
+                        MessageBox.Show("Enter the product id you want search please!");
                     }
-                }));
-
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Input error, digits only for product ID, try again please!");
+                }
+            }));
         }
 
         //To check all the data in DB, will display in an independent window
