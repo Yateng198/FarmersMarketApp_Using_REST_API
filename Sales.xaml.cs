@@ -454,6 +454,7 @@ namespace FarmersMarketApp
 
 
                 }
+            }
             catch (Exception)
             {
                 MessageBox.Show("Input error, please only input integer for the amount of product." +
